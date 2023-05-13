@@ -1,22 +1,25 @@
 import { Error } from 'mongoose';
-import { IUser } from '../modules/users/model';
-import userSchema from '../modules/users/schema';
+import { PersonInput } from '../models/person.model';
+import Person from '../models/person.model';
 
-export default class UserService {
-    public find_all(skip: Number, limit: Number) {
-        return userSchema
-                        .find()
-                        .skip(skip)
-                        .limit(limit);
+export default class PeopleService {
+    public get(skip: number, limit: number) {
+        return Person.find().skip(skip).limit(limit);
     }
 
-    public find_by_id(_id: String) {
-        return userSchema.findById({ _id });
+    public count() {
+        return Person.count();
     }
 
-    public async create_user(user: IUser) {
-        const uSchema = new userSchema(user);
-        return uSchema.validate()
+    public get_by_id(id: string) {
+        return Person.findById({ _id: id });
+    }
+
+    public async create(person: PersonInput) {
+        const newPerson = new Person(person);
+
+        return await newPerson.save();
+        /*return uSchema.validate()
             .then(() => {
                 return uSchema.save();
             })
@@ -32,11 +35,12 @@ export default class UserService {
                 });
 
                 throw {message: result_object};
-            });
+            });*/
     }
 
-    public update_user(_id: String, user: IUser) {
-        return userSchema.updateOne({ _id }, user, { runValidators: true })
+    public async update_by_id(id: string, person: PersonInput) {
+        await Person.findByIdAndUpdate(id, person);
+        /*return userSchema.updateOne({ _id }, user, { runValidators: true })
             .then(() => {})
             .catch((error: Error) => {
                 if(error instanceof Error.ValidationError) {
@@ -55,10 +59,10 @@ export default class UserService {
                     // wrong _id given.
                     throw {message: "Wrong _id"};
                 }
-            });
+            });*/
     }
 
-    public delete_user(_id: String) {
-        return userSchema.deleteOne({ _id });
+    public async delete_by_id(id: string) {
+        await Person.findByIdAndRemove(id);
     }
 }
