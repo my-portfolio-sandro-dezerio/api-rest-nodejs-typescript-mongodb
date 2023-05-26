@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import { Environment } from './environment';
 import { PeopleRoutes } from '../routes/people.route';
 import { ErrorRoutes } from '../routes/error_routes';
-import { connectDatabase } from '../database'
+import { database } from '../database'
 
 class App {
     public app: Application;
@@ -18,7 +18,9 @@ class App {
 
         this.config();
 
-        connectDatabase();
+        if(Environment.config("NODE_ENV") === "DEV") {
+            database();
+        }
 
         this.people_routes.route(this.app);
 

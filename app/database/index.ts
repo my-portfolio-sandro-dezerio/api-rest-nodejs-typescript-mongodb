@@ -1,9 +1,12 @@
-import { Environment } from '../config/environment';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose, { mongo } from 'mongoose';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+
+import { Environment } from '../config/environment';
+
 dotenv.config();
 
-export async function connectDatabase() {
+export async function database() {
     try {
         const url = Environment.config("DATABASE_URL");
         const name = Environment.config("DATABASE_NAME");
@@ -19,10 +22,23 @@ export async function connectDatabase() {
     }
 }
 
-export async function disconnectDatabase() {
-    try {
-        await mongoose.connection.close();
-    } catch (error) {
-        console.log("Error trying to disconnect database...", error);
+const mongod = MongoMemoryServer.create();
+
+export async function connectDatabase() {
+    const url = (await mongod).getUri();
+    await mongoose.connect(url);
+}
+
+export async function closeDatabase() {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+    (await mongod).stop();
+}
+
+export async function clearDatabase() {
+    const collections = mongoose.connection.collections;
+    for (const key in collections) {
+        const collection = collections[key];
+        await collection.deleteMany({});
     }
 }

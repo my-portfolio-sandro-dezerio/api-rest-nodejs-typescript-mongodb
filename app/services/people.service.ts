@@ -16,26 +16,21 @@ export default class PeopleService {
     }
 
     public async create(person: PersonInput) {
-        const newPerson = new Person(person);
+        try {
+            const newPerson = new Person(person);
+    
+            return await newPerson.save();
+        } catch (error: any) {
+            if(error.name === 'MongoServerError' && error.code === 11000 && error.message.includes('duplicate key error')) {
+                return new Error('Email already exists.');
+            }
 
-        return await newPerson.save();
-        /*return uSchema.validate()
-            .then(() => {
-                return uSchema.save();
-            })
-            .catch((error: Error.ValidationError) => {
-                const fields = Object.keys(error.errors);
-                
-                let result_object = {};
-                fields.forEach(field => {
-                    result_object = {
-                        ...result_object,
-                        [field]: error.errors[field].message
-                    }
-                });
+            throw error;
+        }
+    }
 
-                throw {message: result_object};
-            });*/
+    public async createMany(people: PersonInput[]) {
+        return await Person.insertMany(people);
     }
 
     public async update_by_id(id: string, person: PersonInput) {
